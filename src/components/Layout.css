@@ -1,9 +1,11 @@
 .layout {
     display: flex;
     justify-content: center;
-    padding: 20px;
+    padding: 20px; /* Top and side padding */
+    padding-bottom: 80px; /* Extra padding for bottom nav */
     background-color: #f0f2f5;
     min-height: 100vh;
+    box-sizing: border-box; /* Include padding in element's total width and height */
   }
   
   .content {
@@ -13,5 +15,6 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 20px;
+    overflow-y: auto; /* Allow scrolling within the content if needed */
   }
   

@@ -4,9 +4,9 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { getWalks } from '../services/walkService';
 import type { Walk } from '../services/walkService';
-import './CalendarScreen.css';
+import './CalendarPage.css'; // Updated CSS import
 
-const CalendarScreen: React.FC = () => {
+const CalendarPage: React.FC = () => { // Updated component name
   const [walks, setWalks] = useState<Walk[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -56,11 +56,14 @@ const CalendarScreen: React.FC = () => {
     if (walksOnDate.length > 0) {
       // For simplicity, navigate to the first walk of the day
       navigate(`/walk/${walksOnDate[0].id}`);
+    } else {
+        // Optionally navigate to a page to add a walk for this date
+        // navigate(`/walk/new?date=${date.toISOString()}`);
     }
   };
   
   return (
-    <div className="calendar-screen">
+    <div className="calendar-page"> {/* Updated class name */}
       <h1 className="title">Dog Walk Calendar</h1>
       {loading ? (
         <p>Loading walks...</p>
@@ -78,4 +81,4 @@ const CalendarScreen: React.FC = () => {
   );
 };
 
-export default CalendarScreen;
+export default CalendarPage;

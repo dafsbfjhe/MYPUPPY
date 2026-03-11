@@ -1,0 +1,40 @@
+.bottom-navigation {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px; /* Same as layout content max-width */
+    height: 60px;
+    background-color: #ffffff;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    z-index: 1000;
+  }
+  
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #a0a0a0;
+    font-size: 12px;
+    transition: color 0.3s ease;
+    flex: 1;
+    height: 100%;
+  }
+  
+  .nav-item.active {
+    color: #4f46e5; /* Active color */
+  }
+  
+  .nav-item i {
+    font-size: 20px; /* Placeholder icon size */
+    margin-bottom: 4px;
+  }
+  

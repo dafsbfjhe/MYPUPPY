@@ -1,0 +1,48 @@
+.home-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 40px - 60px); /* Full height minus layout padding and bottom nav height */
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px; /* Match content border-radius */
+  }
+  
+  .home-page > div:first-child { /* Target the GoogleMap container or loading div */
+    flex-grow: 1; /* Map takes all available space */
+    border-radius: 8px;
+    overflow: hidden; /* Ensure map corners are rounded */
+  }
+  
+  .loading-map {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    background-color: #e0e0e0;
+    color: #555;
+    font-size: 1.2em;
+    border-radius: 8px;
+  }
+  
+  .btn-start-walk {
+    position: absolute;
+    bottom: 20px; /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50; /* Green */
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease;
+    z-index: 10; /* Ensure button is above map */
+  }
+  
+  .btn-start-walk:hover {
+    background-color: #45a049;
+  }
+  

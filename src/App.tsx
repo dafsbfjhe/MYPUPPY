@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import CalendarScreen from './screens/CalendarScreen';
+import HomePage from './screens/HomePage'; // New Main Page
+import ProfileScreen from './screens/ProfileScreen'; // New Profile Page
+import CalendarPage from './screens/CalendarScreen'; // Existing Calendar, now at /calendar
 import WalkScreen from './screens/WalkScreen';
 import WalkDetailScreen from './screens/WalkDetailScreen';
 import './App.css';
@@ -10,7 +12,9 @@ function App() {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<CalendarScreen />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/profile" element={<ProfileScreen />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/walk" element={<WalkScreen />} />
           <Route path="/walk/:walkId" element={<WalkDetailScreen />} />
         </Routes>
