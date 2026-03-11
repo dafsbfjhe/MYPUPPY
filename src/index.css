@@ -1,11 +1,23 @@
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Define Color Palette */
+  --color-primary: #8B5E3C; /* Warm Brown */
+  --color-secondary: #D4B996; /* Beige Tone */
+  --color-background: #FDF8F3; /* Light Cream */
+  --color-text-dark: #4A2C2A; /* Dark Brown */
+  --color-text-medium: #6F4E37; /* Medium Brown */
+  --color-text-light: #A58B78; /* Lighter Brown for secondary text */
+  --color-border: #E0D3C7; /* Soft border color */
+  --color-shadow-light: rgba(74, 44, 42, 0.1); /* Soft dark brown shadow */
+  --color-shadow-medium: rgba(74, 44, 42, 0.15);
+
+
+  font-family: 'Inter', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light;
-  color: rgba(0, 0, 0, 0.87);
-  background-color: #f0f2f5;
+  color: var(--color-text-dark); /* Default text color */
+  background-color: var(--color-background); /* Default background color */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,4 +34,9 @@ body {
 
 #root {
   width: 100%;
+}
+
+/* Global Border-radius for a rounded feel */
+button, .profile-card, .custom-calendar, .map-container, .metric, .detail-grid {
+    border-radius: 16px; /* A consistent rounded corner for major elements */
 }

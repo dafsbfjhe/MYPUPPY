@@ -1,15 +1,15 @@
 .home-page {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 40px - 60px); /* Full height minus layout padding and bottom nav height */
+    height: calc(100% - 20px); /* Adjust height to fit within the content padding of layout */
     position: relative;
     overflow: hidden;
-    border-radius: 8px; /* Match content border-radius */
+    border-radius: 20px; /* Match content border-radius */
   }
   
   .home-page > div:first-child { /* Target the GoogleMap container or loading div */
     flex-grow: 1; /* Map takes all available space */
-    border-radius: 8px;
+    border-radius: 20px;
     overflow: hidden; /* Ensure map corners are rounded */
   }
   
@@ -18,10 +18,10 @@
     justify-content: center;
     align-items: center;
     flex-grow: 1;
-    background-color: #e0e0e0;
-    color: #555;
+    background-color: var(--color-background);
+    color: var(--color-text-medium);
     font-size: 1.2em;
-    border-radius: 8px;
+    border-radius: 20px;
   }
   
   .btn-start-walk {
@@ -29,20 +29,20 @@
     bottom: 20px; /* Adjust as needed */
     left: 50%;
     transform: translateX(-50%);
-    background-color: #4CAF50; /* Green */
+    background-color: var(--color-primary); /* Warm Brown */
     color: white;
     border: none;
-    padding: 15px 30px;
-    border-radius: 50px;
+    padding: 15px 35px;
+    border-radius: 50px; /* Very rounded */
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease;
+    box-shadow: 0 5px 15px var(--color-shadow-medium); /* Soft shadow */
+    transition: background-color 0.3s ease, transform 0.2s ease;
     z-index: 10; /* Ensure button is above map */
   }
   
   .btn-start-walk:hover {
-    background-color: #45a049;
+    background-color: var(--color-text-medium); /* Slightly darker brown on hover */
+    transform: translateX(-50%) translateY(-3px);
   }
-  

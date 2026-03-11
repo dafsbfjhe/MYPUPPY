@@ -7,12 +7,12 @@
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    max-width: 500px; /* Same as layout content max-width */
-    height: 60px;
-    background-color: #ffffff;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
+    max-width: 480px; /* Match content max-width */
+    height: 70px; /* Slightly taller for better touch */
+    background-color: #ffffff; /* White background for separation but soft look */
+    box-shadow: 0 -4px 15px var(--color-shadow-light); /* Soft shadow for natural blending */
+    border-top-left-radius: 20px; /* Rounded top corners */
+    border-top-right-radius: 20px; /* Rounded top corners */
     z-index: 1000;
   }
   
@@ -22,19 +22,29 @@
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    color: #a0a0a0;
-    font-size: 12px;
-    transition: color 0.3s ease;
+    color: var(--color-text-light); /* Lighter brown for inactive */
+    font-size: 13px; /* Slightly larger font */
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.2s ease;
     flex: 1;
     height: 100%;
+    gap: 4px; /* Space between icon and text */
   }
   
+  .nav-item:hover {
+      transform: translateY(-2px);
+  }
+
   .nav-item.active {
-    color: #4f46e5; /* Active color */
+    color: var(--color-primary); /* Warm brown for active item */
+    font-weight: 600;
   }
   
   .nav-item i {
-    font-size: 20px; /* Placeholder icon size */
-    margin-bottom: 4px;
+    font-size: 24px; /* Larger icon size */
   }
   
+  /* Placeholder icon styles (real icons would be better, but this fits the constraint) */
+  .icon-map::before { content: "🗺️"; }
+  .icon-profile::before { content: "🐾"; }
+  .icon-calendar::before { content: "🗓️"; }

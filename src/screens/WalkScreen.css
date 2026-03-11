@@ -3,15 +3,18 @@
     flex-direction: column;
     align-items: center;
     gap: 30px;
+    padding-bottom: 20px; /* Space for the bottom navigation */
   }
   
   .metrics-container {
     display: flex;
     justify-content: space-around;
     width: 100%;
-    background-color: #f9fafb;
-    padding: 20px;
-    border-radius: 12px;
+    background-color: #ffffff; /* White background for metrics */
+    padding: 25px; /* Increased padding */
+    border-radius: 20px; /* More rounded corners */
+    box-shadow: 0 4px 15px var(--color-shadow-light); /* Soft shadow */
+    border: 1px solid var(--color-border); /* Subtle border */
   }
   
   .metric {
@@ -22,54 +25,59 @@
   
   .metric-label {
     font-size: 14px;
-    color: #6b7280;
+    color: var(--color-text-light);
     margin-bottom: 5px;
   }
   
   .metric-value {
-    font-size: 28px;
+    font-size: 32px; /* Slightly larger font */
     font-weight: 600;
-    color: #111827;
+    color: var(--color-text-dark);
   }
   
   .controls {
     display: flex;
     gap: 20px;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    justify-content: center;
   }
   
   .controls button {
     border: none;
     color: white;
     padding: 15px 30px;
-    border-radius: 50px;
+    border-radius: 50px; /* Very rounded */
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 5px 15px var(--color-shadow-medium); /* Soft shadow */
+    min-width: 120px; /* Ensure buttons have a minimum width */
   }
 
   .controls button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px var(--color-shadow-medium);
   }
   
   .btn-start {
-    background: linear-gradient(to right, #34d399, #10b981);
+    background-color: #4CAF50; /* Green for start - distinct from brown palette for action */
   }
   
   .btn-pause {
-    background: linear-gradient(to right, #fbbf24, #f59e0b);
+    background-color: #FFC107; /* Amber for pause */
   }
 
   .btn-resume {
-    background: linear-gradient(to right, #60a5fa, #3b82f6);
+    background-color: #2196F3; /* Blue for resume */
   }
   
   .btn-end {
-    background: linear-gradient(to right, #f87171, #ef4444);
+    background-color: #F44336; /* Red for end */
   }
 
   .condition-note {
       margin-top: 20px;
+      color: var(--color-text-medium);
+      font-style: italic;
   }
-  
