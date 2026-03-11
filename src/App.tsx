@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import HomePage from './screens/HomePage'; // New Main Page
 import ProfileScreen from './screens/ProfileScreen'; // New Profile Page
-import CalendarPage from './screens/CalendarScreen'; // Existing Calendar, now at /calendar
+import CalendarPage from './screens/CalendarPage'; // Existing Calendar, now at /calendar
 import WalkScreen from './screens/WalkScreen';
 import WalkDetailScreen from './screens/WalkDetailScreen';
 import './App.css';
