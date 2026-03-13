@@ -6,10 +6,12 @@ import {
   GoogleAuthProvider 
 } from 'firebase/auth';
 import { auth, db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import './LoginScreen.css';
 
 const LoginScreen: React.FC = () => {
+  const { loginWithKakao } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -40,9 +42,18 @@ const LoginScreen: React.FC = () => {
     }
   };
 
-  const handleKakaoLogin = () => {
-    alert('카카오톡 로그인은 현재 준비 중입니다.');
-    // In a real app, you'd use a custom token or a library like react-kakao-login
+  const handleKakaoLogin = async () => {
+    setError('');
+    try {
+      await loginWithKakao();
+      // AuthContext handles the Firebase sign-in, but we need to ensure user data is initialized
+      if (auth.currentUser) {
+        await initializeUserData(auth.currentUser.uid);
+      }
+    } catch (err: any) {
+      setError(err.message || '카카오 로그인 중 오류가 발생했습니다.');
+      console.error('Kakao login failed:', err);
+    }
   };
 
   const initializeUserData = async (uid: string) => {
