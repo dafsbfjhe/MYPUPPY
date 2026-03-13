@@ -5,11 +5,13 @@ import { addWalk } from '../services/walkService';
 import { watchPosition, clearWatch } from '../utils/geolocation';
 import { calculateDistance } from '../utils/distance';
 import { formatDuration } from '../utils/time';
+import { useAuth } from '../context/AuthContext';
 import './WalkScreen.css';
 
 type WalkStatus = 'idle' | 'walking' | 'paused' | 'ended';
 
 const WalkScreen: React.FC = () => {
+  const { user } = useAuth();
   const [status, setStatus] = useState<WalkStatus>('idle');
   const [duration, setDuration] = useState(0);
   const [distance, setDistance] = useState(0);
@@ -19,7 +21,6 @@ const WalkScreen: React.FC = () => {
   const watchIdRef = useRef<number | null>(null);
 
   const navigate = useNavigate();
-  const userId = 'test-user'; // Hardcoded user for now
 
   useEffect(() => {
     if (status === 'walking') {
@@ -73,8 +74,13 @@ const WalkScreen: React.FC = () => {
         return;
     }
 
+    if (!user) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
     try {
-      await addWalk(userId, {
+      await addWalk(user.uid, {
         date: Timestamp.now(),
         duration,
         distance,

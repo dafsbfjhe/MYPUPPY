@@ -3,19 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getWalk } from '../services/walkService';
 import type { Walk } from '../services/walkService';
 import { formatDuration } from '../utils/time';
+import { useAuth } from '../context/AuthContext';
 import Map from '../components/Map';
 import './WalkDetailScreen.css';
 
 const WalkDetailScreen: React.FC = () => {
+  const { user } = useAuth();
   const { walkId } = useParams<{ walkId: string }>();
   const [walk, setWalk] = useState<Walk | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const userId = 'test-user'; // Hardcoded user for now
-
   useEffect(() => {
-    if (!walkId) {
+    if (!walkId || !user) {
       setLoading(false);
       return;
     }
@@ -23,7 +23,7 @@ const WalkDetailScreen: React.FC = () => {
     const fetchWalk = async () => {
       try {
         setLoading(true);
-        const fetchedWalk = await getWalk(userId, walkId);
+        const fetchedWalk = await getWalk(user.uid, walkId);
         setWalk(fetchedWalk);
       } catch (error) {
         console.error("Failed to fetch walk", error);
@@ -33,7 +33,7 @@ const WalkDetailScreen: React.FC = () => {
     };
 
     fetchWalk();
-  }, [walkId]);
+  }, [walkId, user]);
 
   if (loading) {
     return <p>Loading walk details...</p>;
@@ -41,9 +41,9 @@ const WalkDetailScreen: React.FC = () => {
 
   if (!walk) {
     return (
-      <div>
+      <div className="walk-detail-screen">
         <h2>Walk not found</h2>
-        <button onClick={() => navigate('/')}>Back to Calendar</button>
+        <button className="btn-secondary" onClick={() => navigate('/')}>Back to Calendar</button>
       </div>
     );
   }
