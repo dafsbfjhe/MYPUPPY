@@ -30,38 +30,40 @@ setGlobalOptions({maxInstances: 10});
 /**
  * 카카오 사용자 ID를 받아 Firebase Custom Token을 생성합니다.
  */
-export const createKakaoCustomToken = onRequest(async (request, response) => {
-  // POST 요청만 허용
-  if (request.method !== "POST") {
-    response.status(405).send("Method Not Allowed");
-    return;
-  }
+export const createKakaoCustomToken = onRequest(
+  {cors: true},
+  async (request, response) => {
+    // POST 요청만 허용
+    if (request.method !== "POST") {
+      response.status(405).send("Method Not Allowed");
+      return;
+    }
 
-  const kakaoUserId = request.body.kakaoUserId;
+    const kakaoUserId = request.body.kakaoUserId;
 
-  if (!kakaoUserId) {
-    logger.error("kakaoUserId is missing in request body");
-    response.status(400).send("Bad Request: kakaoUserId is required");
-    return;
-  }
+    if (!kakaoUserId) {
+      logger.error("kakaoUserId is missing in request body");
+      response.status(400).send("Bad Request: kakaoUserId is required");
+      return;
+    }
 
-  try {
+    try {
     // Firebase Custom Token 생성
-    const firebaseToken = await admin.auth()
-      .createCustomToken(kakaoUserId.toString());
+      const firebaseToken = await admin.auth()
+        .createCustomToken(kakaoUserId.toString());
 
-    logger.info(
-      `Successfully created custom token for kakao user: ${kakaoUserId}`
-    );
+      logger.info(
+        `Successfully created custom token for kakao user: ${kakaoUserId}`
+      );
 
-    response.status(200).json({
-      token: firebaseToken,
-    });
-  } catch (error) {
-    logger.error("Error creating custom token:", error);
-    response.status(500).send("Internal Server Error");
-  }
-});
+      response.status(200).json({
+        token: firebaseToken,
+      });
+    } catch (error) {
+      logger.error("Error creating custom token:", error);
+      response.status(500).send("Internal Server Error");
+    }
+  });
 
 // export const helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", {structuredData: true});
