@@ -31,53 +31,93 @@
 .profile-card {
   background: white;
   border-radius: 25px;
-  padding: 20px;
+  padding: 30px 20px;
   margin-bottom: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   text-align: center;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.profile-card.dragging {
+  border-color: #8b4513;
+  background-color: #fdf8f3;
+  transform: scale(1.02);
+}
+
+.profile-image-wrapper {
+  margin-bottom: 25px;
 }
 
 .image-container {
   position: relative;
   display: inline-block;
-  margin-bottom: 15px;
+  width: 180px;
+  height: 180px;
+  cursor: pointer;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid #fdf5e6;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .profile-image {
-  border-radius: 50%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 4px solid #fdf5e6;
 }
 
-.profile-image.large {
-  width: 120px;
-  height: 120px;
-}
-
-.profile-image.medium {
-  width: 100px;
-  height: 100px;
-}
-
-.image-upload-label {
+.image-overlay {
   position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background: white;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  cursor: pointer;
-  font-size: 1.2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  font-size: 2rem;
+}
+
+.image-container:hover .image-overlay {
+  opacity: 1;
+}
+
+.upload-hint {
+  font-size: 0.85rem;
+  color: #a58b78;
+  margin-top: 10px;
 }
 
 .nickname {
   color: #8b4513;
-  margin: 10px 0;
+  font-size: 1.6rem;
+  margin-bottom: 15px;
+}
+
+.dog-details {
+  background: #fdf8f3;
+  padding: 15px;
+  border-radius: 15px;
+  margin: 0 auto 20px auto;
+  max-width: 300px;
+  text-align: left;
+}
+
+.dog-details p {
+  margin: 8px 0;
+  color: #6f4e37;
+  font-size: 1rem;
+}
+
+.dog-details strong {
+  color: #8b4513;
+  width: 80px;
+  display: inline-block;
 }
 
 .section-title {
@@ -88,74 +128,83 @@
   padding-bottom: 8px;
 }
 
-.info-display {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-}
-
-.info-display-vertical {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 200px;
-  margin: 0 auto;
-}
-
 .btn-edit-small {
   background: #fdf5e6;
   border: 1px solid #d2b48c;
   color: #8b4513;
-  padding: 5px 12px;
-  border-radius: 8px;
+  padding: 8px 20px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 0.85rem;
-  margin-top: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-edit-small:hover {
+  background: #d2b48c;
+  color: white;
 }
 
 .edit-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 250px;
+  gap: 15px;
+  max-width: 320px;
   margin: 0 auto;
+  text-align: left;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-group label {
+  font-size: 0.85rem;
+  color: #8b4513;
+  font-weight: bold;
+  margin-left: 5px;
 }
 
 .edit-input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  font-size: 0.95rem;
+  padding: 12px;
+  border: 1px solid #e0d3c7;
+  border-radius: 12px;
+  font-size: 1rem;
   outline: none;
+  background: #fdfdfd;
 }
 
 .edit-input:focus {
   border-color: #8b4513;
+  box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.1);
 }
 
 .btn-group {
   display: flex;
   gap: 10px;
-  justify-content: center;
+  margin-top: 10px;
 }
 
 .btn-save {
+  flex: 2;
   background-color: #8b4513;
   color: white;
   border: none;
-  padding: 8px 20px;
-  border-radius: 10px;
+  padding: 12px;
+  border-radius: 12px;
   cursor: pointer;
+  font-weight: bold;
 }
 
 .btn-cancel {
+  flex: 1;
   background-color: #eee;
   color: #666;
   border: none;
-  padding: 8px 20px;
-  border-radius: 10px;
+  padding: 12px;
+  border-radius: 12px;
   cursor: pointer;
 }
 
@@ -169,16 +218,19 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  padding: 10px;
+  background: #fdf8f3;
+  border-radius: 15px;
 }
 
 .stat-label {
-  color: #999;
-  font-size: 0.9rem;
+  color: #a58b78;
+  font-size: 0.85rem;
 }
 
 .stat-value {
   color: #8b4513;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: bold;
 }
 
@@ -189,4 +241,5 @@
   height: 100vh;
   color: #8b4513;
   font-weight: bold;
+  background-color: #fdf5e6;
 }
