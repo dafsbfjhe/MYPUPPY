@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import HomePage from './screens/HomePage'; // New Main Page
@@ -6,14 +7,25 @@ import CalendarPage from './screens/CalendarPage'; // Existing Calendar, now at 
 import WalkScreen from './screens/WalkScreen';
 import WalkDetailScreen from './screens/WalkDetailScreen';
 import LoginScreen from './screens/LoginScreen';
+import SplashScreen from './screens/SplashScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 
 const AppContent = () => {
   const { user, loading } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
 
-  if (loading) {
-    return <div className="loading-screen">Loading...</div>;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500); // 2.5 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show splash screen for at least 2.5 seconds or while loading auth state
+  if (showSplash || loading) {
+    return <SplashScreen />;
   }
 
   if (!user) {
