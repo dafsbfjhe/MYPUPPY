@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db, auth } from '../firebase';
-import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { uploadImage } from '../utils/storage';
 import { calculateExpForNextLevel } from '../services/userService';
@@ -16,11 +16,6 @@ interface DogInfo {
   age: string;
   breed: string;
   image: string;
-}
-
-interface WalkStats {
-  totalWalks: number;
-  totalDistance: number;
 }
 
 const DEFAULT_DOG_IMAGE = "https://img.icons8.com/color/192/000000/dog.png";
