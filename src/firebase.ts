@@ -18,8 +18,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore
-const db = getFirestore(app);
+// Initialize Firestore with specific database ID
+const db = getFirestore(app, "mypuppy-users");
 
 // Initialize Auth
 const auth = getAuth(app);
