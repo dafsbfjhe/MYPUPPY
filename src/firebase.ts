@@ -28,3 +28,8 @@ const auth = getAuth(app);
 const storage = getStorage(app);
 
 export { db, auth, storage };
+
+console.log("ENV CHECK:", {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID
+});
