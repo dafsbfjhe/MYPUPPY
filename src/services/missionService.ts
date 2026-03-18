@@ -8,8 +8,7 @@ import {
   updateDoc, 
   query, 
   where,
-  onSnapshot,
-  increment
+  onSnapshot
 } from 'firebase/firestore';
 
 export interface Mission {
@@ -33,7 +32,7 @@ export interface UserMission {
 const missionStrategies: Record<string, (current: number, incrementValue: number) => number> = {
   count: (current, inc) => current + inc,
   distance: (current, inc) => current + inc,
-  streak: (current, inc) => inc, // For streak, we might replace or increment depending on logic, but for simplicity, let's say it's updated directly
+  streak: (_current, inc) => inc, // Use underscore for unused parameter
 };
 
 export const getMissions = async (): Promise<Mission[]> => {

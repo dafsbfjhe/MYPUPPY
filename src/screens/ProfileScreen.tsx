@@ -29,7 +29,6 @@ const ProfileScreen: React.FC = () => {
   const { user, userData } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
-  const [walkStats, setWalkStats] = useState<WalkStats>({ totalWalks: 0, totalDistance: 0 });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -45,12 +44,7 @@ const ProfileScreen: React.FC = () => {
     
     try {
       const userDocRef = doc(db, 'users', user.uid);
-      const walksCollectionRef = collection(db, `users/${user.uid}/walks`);
-      
-      const [userDoc, walksSnapshot] = await Promise.all([
-        getDoc(userDocRef),
-        getDocs(walksCollectionRef)
-      ]);
+      const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
         const data = userDoc.data();
@@ -62,16 +56,6 @@ const ProfileScreen: React.FC = () => {
         setNewDogAge(data.dog?.age || '');
         setNewDogBreed(data.dog?.breed || '');
       }
-
-      let totalDistance = 0;
-      walksSnapshot.forEach(doc => {
-        totalDistance += doc.data().distance || 0;
-      });
-      
-      setWalkStats({
-        totalWalks: walksSnapshot.size,
-        totalDistance: Math.round((totalDistance / 1000) * 10) / 10
-      });
 
     } catch (error) {
       console.error("Error fetching data:", error);
