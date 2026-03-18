@@ -5,9 +5,8 @@ import {
   signInWithPopup, 
   GoogleAuthProvider 
 } from 'firebase/auth';
-import { auth, db } from '../firebase';
+import { auth } from '../firebase';
 import { useAuth } from '../context/AuthContext';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
 import './LoginScreen.css';
 
 const LoginScreen: React.FC = () => {
@@ -22,8 +21,7 @@ const LoginScreen: React.FC = () => {
     setError('');
     try {
       if (isSignUp) {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await initializeUserData(userCredential.user.uid);
+        await createUserWithEmailAndPassword(auth, email, password);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
@@ -35,8 +33,7 @@ const LoginScreen: React.FC = () => {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      await initializeUserData(result.user.uid);
+      await signInWithPopup(auth, provider);
     } catch (err: any) {
       setError(err.message);
     }
@@ -46,32 +43,9 @@ const LoginScreen: React.FC = () => {
     setError('');
     try {
       await loginWithKakao();
-      // AuthContext handles the Firebase sign-in, but we need to ensure user data is initialized
-      if (auth.currentUser) {
-        await initializeUserData(auth.currentUser.uid);
-      }
     } catch (err: any) {
       setError(err.message || '카카오 로그인 중 오류가 발생했습니다.');
       console.error('Kakao login failed:', err);
-    }
-  };
-
-  const initializeUserData = async (uid: string) => {
-    const userDocRef = doc(db, 'users', uid);
-    const userDoc = await getDoc(userDocRef);
-    if (!userDoc.exists()) {
-      await setDoc(userDocRef, {
-        profile: {
-          nickname: '신규 사용자',
-          profileImage: 'https://via.placeholder.com/150/d3d3d3/ffffff?text=User',
-        },
-        dog: {
-          name: '강아지 이름',
-          age: '0살',
-          breed: '품종',
-          image: 'https://via.placeholder.com/150/a9a9a9/ffffff?text=Dog',
-        }
-      });
     }
   };
 

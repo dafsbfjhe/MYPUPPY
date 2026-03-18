@@ -66,6 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             totalWalkCount: 0,
             totalWalkDistance: 0,
             createdAt: Timestamp.now(),
+            profile: {
+              nickname: firebaseUser.displayName || '신규 사용자',
+            },
+            dog: {
+              name: '강아지 이름',
+              age: '0살',
+              breed: '품종',
+              image: 'https://img.icons8.com/color/192/000000/dog.png',
+            }
           };
           await setDoc(userDocRef, initialData);
           setUserData(initialData);

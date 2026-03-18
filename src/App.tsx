@@ -25,6 +25,8 @@ const AppContent = () => {
 
   useEffect(() => {
     const seedMissions = async () => {
+      if (!user) return; // Wait for authentication
+      
       const missionsCol = collection(db, 'missions');
       const snapshot = await getDocs(missionsCol);
       if (snapshot.empty) {
@@ -42,7 +44,7 @@ const AppContent = () => {
     }, 2500); // 2.5 seconds
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [user]); // Add user as a dependency
 
   // Show splash screen for at least 2.5 seconds or while loading auth state
   if (showSplash || loading) {
