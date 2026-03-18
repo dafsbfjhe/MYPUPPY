@@ -31,12 +31,50 @@
 .profile-card {
   background: white;
   border-radius: 25px;
-  padding: 30px 20px;
+  padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   text-align: center;
   transition: all 0.3s ease;
   border: 2px solid transparent;
+}
+
+/* Growth Section */
+.growth-section {
+  background: linear-gradient(135deg, #d2b48c 0%, #8b4513 100%);
+  color: white;
+  text-align: left;
+}
+
+.level-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.lv-badge {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.exp-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.exp-bar-container {
+  height: 12px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.exp-bar-fill {
+  height: 100%;
+  background-color: white;
+  transition: width 0.5s ease-out;
 }
 
 .profile-card.dragging {

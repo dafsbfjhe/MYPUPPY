@@ -1,10 +1,29 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithCustomToken, signOut } from 'firebase/auth';
 import type { User } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, getDoc, setDoc, Timestamp, onSnapshot } from 'firebase/firestore';
+
+interface UserData {
+  level: number;
+  exp: number;
+  totalWalkCount: number;
+  totalWalkDistance: number;
+  createdAt: Timestamp;
+  profile?: {
+    nickname: string;
+  };
+  dog?: {
+    name: string;
+    age: string;
+    breed: string;
+    image: string;
+  };
+}
 
 interface AuthContextType {
   user: User | null;
+  userData: UserData | null;
   loading: boolean;
   loginWithKakao: () => Promise<void>;
   logout: () => Promise<void>;
@@ -12,16 +31,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({ 
   user: null, 
+  userData: null,
   loading: true,
   loginWithKakao: async () => {},
   logout: async () => {}
 });
 
-const KAKAO_JS_KEY = 'ad12ac82fb30028a0ca2fcf93756c20c'; // Replace with your real Kakao JS Key
+const KAKAO_JS_KEY = 'ad12ac82fb30028a0ca2fcf93756c20c';
 const CLOUD_FUNCTION_URL = 'https://createkakaocustomtoken-uflxxq5u5q-uc.a.run.app';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,11 +51,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.Kakao.init(KAKAO_JS_KEY);
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      
+      if (firebaseUser) {
+        // Initial user data setup/fetch
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists()) {
+          const initialData: UserData = {
+            level: 1,
+            exp: 0,
+            totalWalkCount: 0,
+            totalWalkDistance: 0,
+            createdAt: Timestamp.now(),
+          };
+          await setDoc(userDocRef, initialData);
+          setUserData(initialData);
+        }
+
+        // Real-time listener for user data
+        const unsubscribeData = onSnapshot(userDocRef, (doc) => {
+          if (doc.exists()) {
+            setUserData(doc.data() as UserData);
+          }
+        });
+
+        setLoading(false);
+        return () => {
+          unsubscribeData();
+        };
+      } else {
+        setUserData(null);
+        setLoading(false);
+      }
     });
-    return unsubscribe;
+
+    return unsubscribeAuth;
   }, []);
 
   const loginWithKakao = (): Promise<void> => {
@@ -46,7 +100,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Check if initialized before calling login
       if (!Kakao.isInitialized()) {
         Kakao.init(KAKAO_JS_KEY);
       }
@@ -59,7 +112,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               try {
                 const kakaoUserId = response.id;
                 
-                // 1. Call Cloud Function to get Firebase Custom Token
                 const tokenResponse = await fetch(CLOUD_FUNCTION_URL, {
                   method: 'POST',
                   headers: {
@@ -73,8 +125,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
 
                 const { token: customToken } = await tokenResponse.json();
-
-                // 2. Sign in to Firebase with Custom Token
                 await signInWithCustomToken(auth, customToken);
                 resolve();
               } catch (err) {
@@ -108,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithKakao, logout }}>
+    <AuthContext.Provider value={{ user, userData, loading, loginWithKakao, logout }}>
       {children}
     </AuthContext.Provider>
   );

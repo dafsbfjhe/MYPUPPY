@@ -4,11 +4,11 @@ import { db, auth } from '../firebase';
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { uploadImage } from '../utils/storage';
+import { calculateExpForNextLevel } from '../services/userService';
 import './ProfileScreen.css';
 
 interface UserProfile {
   nickname: string;
-  // profileImage is now deprecated/removed in favor of dog.image
 }
 
 interface DogInfo {
@@ -26,7 +26,7 @@ interface WalkStats {
 const DEFAULT_DOG_IMAGE = "https://img.icons8.com/color/192/000000/dog.png";
 
 const ProfileScreen: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [dogInfo, setDogInfo] = useState<DogInfo | null>(null);
   const [walkStats, setWalkStats] = useState<WalkStats>({ totalWalks: 0, totalDistance: 0 });
@@ -44,7 +44,6 @@ const ProfileScreen: React.FC = () => {
     if (!user) return;
     
     try {
-      // Parallelize Firestore calls for speed
       const userDocRef = doc(db, 'users', user.uid);
       const walksCollectionRef = collection(db, `users/${user.uid}/walks`);
       
@@ -58,14 +57,12 @@ const ProfileScreen: React.FC = () => {
         setUserProfile(data.profile);
         setDogInfo(data.dog);
         
-        // Sync form states
         setNewNickname(data.profile?.nickname || '');
         setNewDogName(data.dog?.name || '');
         setNewDogAge(data.dog?.age || '');
         setNewDogBreed(data.dog?.breed || '');
       }
 
-      // Calculate stats
       let totalDistance = 0;
       walksSnapshot.forEach(doc => {
         totalDistance += doc.data().distance || 0;
@@ -152,11 +149,24 @@ const ProfileScreen: React.FC = () => {
 
   if (loading && !dogInfo) return <div className="loading">프로필 정보를 불러오는 중...</div>;
 
+  const expForNext = calculateExpForNextLevel(userData?.level || 1);
+  const progressPercent = Math.min(100, ((userData?.exp || 0) / expForNext) * 100);
+
   return (
     <div className="profile-screen">
       <div className="profile-header">
         <h1 className="title">프로필</h1>
         <button className="btn-signout" onClick={handleSignOut}>로그아웃</button>
+      </div>
+
+      <div className="profile-card growth-section">
+          <div className="level-info">
+              <span className="lv-badge">Lv. {userData?.level || 1}</span>
+              <span className="exp-text">{userData?.exp || 0} / {expForNext} XP</span>
+          </div>
+          <div className="exp-bar-container">
+              <div className="exp-bar-fill" style={{ width: `${progressPercent}%` }}></div>
+          </div>
       </div>
 
       <div className={`profile-card main-profile-section ${isDragging ? 'dragging' : ''}`}
@@ -233,11 +243,11 @@ const ProfileScreen: React.FC = () => {
         <div className="stats-grid">
             <div className="stat-item">
                 <span className="stat-label">총 산책 횟수</span>
-                <span className="stat-value">{walkStats.totalWalks} 회</span>
+                <span className="stat-value">{userData?.totalWalkCount || 0} 회</span>
             </div>
             <div className="stat-item">
                 <span className="stat-label">총 산책 거리</span>
-                <span className="stat-value">{walkStats.totalDistance} km</span>
+                <span className="stat-value">{((userData?.totalWalkDistance || 0) / 1000).toFixed(1)} km</span>
             </div>
         </div>
       </div>
