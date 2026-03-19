@@ -14,10 +14,8 @@ const HomePage: React.FC = () => {
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
-  // TODO: Replace with your Google Maps API Key.
-  // It's recommended to load this from an environment variable (e.g., process.env.REACT_APP_GOOGLE_MAPS_API_KEY)
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, 
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
   useEffect(() => {
