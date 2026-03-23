@@ -1,3 +1,4 @@
+// Cloudflare build trigger: Restarted server and refreshed Map ID configuration.
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api';
 import { watchPosition, clearWatch } from '../utils/geolocation';
@@ -148,5 +149,6 @@ const HomePage: React.FC = () => {
     </div>
   );
 };
+
 
 export default HomePage;
