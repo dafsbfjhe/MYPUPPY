@@ -1,20 +1,21 @@
 .home-page {
     display: flex;
     flex-direction: column;
-    height: calc(100% - 20px); /* Adjust height to fit within the content padding of layout */
+    height: calc(100% - 20px);
     position: relative;
     overflow: hidden;
-    border-radius: 20px; /* Match content border-radius */
+    border-radius: 20px;
   }
   
-  .home-page > div:first-child { /* Target the GoogleMap container or loading div */
-    flex-grow: 1; /* Map takes all available space */
+  .home-page > div:first-child {
+    flex-grow: 1;
     border-radius: 20px;
-    overflow: hidden; /* Ensure map corners are rounded */
+    overflow: hidden;
   }
   
   .loading-map {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     flex-grow: 1;
@@ -22,27 +23,66 @@
     color: var(--color-text-medium);
     font-size: 1.2em;
     border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .geo-error-msg {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .geo-error-msg p {
+    font-size: 16px;
+    color: #ef4444;
+    margin: 0;
+  }
+
+  .geo-error-msg button {
+    padding: 10px 20px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
   }
   
   .btn-start-walk {
     position: absolute;
-    bottom: 20px; /* Adjust as needed */
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--color-primary); /* Warm Brown */
+    background-color: var(--color-primary);
     color: white;
     border: none;
     padding: 15px 35px;
-    border-radius: 50px; /* Very rounded */
+    border-radius: 50px;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 5px 15px var(--color-shadow-medium); /* Soft shadow */
+    box-shadow: 0 5px 15px var(--color-shadow-medium);
     transition: background-color 0.3s ease, transform 0.2s ease;
-    z-index: 10; /* Ensure button is above map */
+    z-index: 10;
+  }
+
+  .btn-start-walk:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+    transform: translateX(-50%);
   }
   
-  .btn-start-walk:hover {
-    background-color: var(--color-text-medium); /* Slightly darker brown on hover */
+  .btn-start-walk:not(:disabled):hover {
+    background-color: var(--color-text-medium);
     transform: translateX(-50%) translateY(-3px);
+  }
+
+  .streak-overlay-layer {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    pointer-events: auto;
   }

@@ -1,71 +1,63 @@
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, doc, getDoc, Timestamp, GeoPoint } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, Timestamp, orderBy } from 'firebase/firestore';
+import { WalkRecord } from '../types/walk';
+import { getStartOfWeek, formatDateKey } from '../utils/time';
 
-export interface Walk {
-  id?: string;
-  date: Timestamp;
-  distance: number; // in meters
-  duration: number; // in seconds
-  condition: string;
-  routeCoordinates: { lat: number; lng: number; }[];
-  createdAt: Timestamp;
-}
+const WALKS_COLLECTION = 'walks';
 
-const getWalksCollection = (userId: string) => {
-  return collection(db, `users/${userId}/walks`);
-};
-
-export const addWalk = async (userId: string, walkData: Omit<Walk, 'id' | 'createdAt'>): Promise<string> => {
+export const saveWalkRecord = async (record: WalkRecord): Promise<string> => {
   try {
-    const docRef = await addDoc(getWalksCollection(userId), {
-      ...walkData,
-      routeCoordinates: walkData.routeCoordinates.map(coord => new GeoPoint(coord.lat, coord.lng)),
+    const docRef = await addDoc(collection(db, WALKS_COLLECTION), {
+      ...record,
       createdAt: Timestamp.now(),
     });
     return docRef.id;
   } catch (error) {
-    console.error("Error adding walk: ", error);
-    throw new Error("Failed to save walk.");
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Firebase Save Error:", message);
+    throw new Error("산책 기록 저장 실패: " + message);
   }
 };
 
-export const getWalks = async (userId: string): Promise<Walk[]> => {
+/** 
+ * [Firestore 인덱스 생성 필요]
+ * 컬렉션: walks
+ * 필드: userId(ASC), date(DESC) 
+ */
+export const getWeeklyStats = async (userId: string) => {
   try {
-    const querySnapshot = await getDocs(getWalksCollection(userId));
-    return querySnapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        date: data.date as Timestamp,
-        createdAt: data.createdAt as Timestamp,
-        routeCoordinates: data.routeCoordinates.map((gp: GeoPoint) => ({ lat: gp.latitude, lng: gp.longitude }))
-      } as Walk;
+    const startOfWeek = getStartOfWeek(new Date());
+    const q = query(
+      collection(db, WALKS_COLLECTION),
+      where('userId', '==', userId),
+      where('date', '>=', startOfWeek.getTime()),
+      orderBy('date', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    const uniqueDates = new Set<string>();
+    let totalCount = 0;
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as WalkRecord;
+      // 테스트용 조건: 10초 이상일 때만 인정
+      if (data.duration >= 10) {
+        uniqueDates.add(formatDateKey(new Date(data.date)));
+        totalCount++;
+      }
     });
+
+    const streak = new Array(7).fill(false);
+    uniqueDates.forEach((dateStr) => {
+      const date = new Date(dateStr);
+      // 월요일 시작(0) ~ 일요일(6)로 변환
+      const dayIndex = (date.getDay() + 6) % 7;
+      streak[dayIndex] = true;
+    });
+
+    return { totalCount, streak };
   } catch (error) {
-    console.error("Error getting walks: ", error);
-    throw new Error("Failed to fetch walks.");
+    console.error("Get Weekly Stats Error:", error);
+    return { totalCount: 0, streak: new Array(7).fill(false) };
   }
 };
-
-export const getWalk = async (userId: string, walkId: string): Promise<Walk | null> => {
-    try {
-      const docRef = doc(db, `users/${userId}/walks`, walkId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        return {
-          id: docSnap.id,
-          ...data,
-          date: data.date as Timestamp,
-          createdAt: data.createdAt as Timestamp,
-          routeCoordinates: data.routeCoordinates.map((gp: GeoPoint) => ({ lat: gp.latitude, lng: gp.longitude }))
-        } as Walk;
-      } else {
-        return null;
-      }
-    } catch (error) {
-      console.error("Error getting walk: ", error);
-      throw new Error("Failed to fetch walk.");
-    }
-  };

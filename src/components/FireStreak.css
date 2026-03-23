@@ -1,0 +1,38 @@
+.streak-wrapper {
+  display: flex;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 15px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.streak-fire {
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+}
+
+.streak-fire.active {
+  color: #FF5722;
+  filter: drop-shadow(0 0 4px rgba(255, 87, 34, 0.5));
+}
+
+.streak-fire.inactive {
+  color: #E2E8F0;
+}
+
+.perfect-glow {
+  animation: perfectPulse 2s infinite ease-in-out;
+}
+
+@keyframes perfectPulse {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.2);
+  }
+  50% { 
+    transform: scale(1.03); 
+    box-shadow: 0 8px 20px rgba(255, 87, 34, 0.4);
+  }
+}
