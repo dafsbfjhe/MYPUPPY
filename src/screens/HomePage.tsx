@@ -12,7 +12,6 @@ const containerStyle = {
 };
 
 const HomePage: React.FC = () => {
-  const navigate = useNavigate();
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
   
   // 산책 상태 관리
@@ -23,7 +22,6 @@ const HomePage: React.FC = () => {
   
   const watchIdRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
-  const lastPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, 
