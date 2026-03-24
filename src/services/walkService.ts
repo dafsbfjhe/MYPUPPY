@@ -11,42 +11,88 @@ import {
   orderBy, 
   GeoPoint 
 } from 'firebase/firestore';
-import type { WalkRecord, Walk } from '../types/walk';
+import type { WalkRecord, Walk, RoutePoint } from '../types/walk';
 import { getStartOfWeek, formatDateKey } from '../utils/time';
 import { calculateCalories } from '../utils/walkLogic';
 
 // ---------------------------------------------------------
-// [내부 통합 함수] - 데이터 구조를 통일하고 Firestore에 저장
+// [1단계: 정규화 전담 함수] - Clean Data (number 날짜 기반)
+// ---------------------------------------------------------
+
+/**
+ * 어떤 형태의 산책 데이터가 들어오든 표준 WalkRecord 형식으로 정규화합니다.
+ * 프론트엔드 전구간에서 사용하기 편하도록 날짜는 number(ms)로 통일합니다.
+ */
+const normalizeWalkData = (data: any, id: string): WalkRecord => {
+  const distance = data.distance || 0;
+  
+  // 1. 날짜 정규화 (Timestamp or number -> number)
+  const dateMs = data.date instanceof Timestamp 
+    ? data.date.toMillis() 
+    : (typeof data.date === 'number' ? data.date : Date.now());
+
+  // 2. 경로 정규화 (GeoPoint or {lat, lng} -> RoutePoint[])
+  const rawRoute = data.route || data.routeCoordinates || [];
+  const normalizedRoute: RoutePoint[] = rawRoute.map((p: any) => {
+    if (p instanceof GeoPoint) return { lat: p.latitude, lng: p.longitude };
+    if (typeof p.lat === 'number' && typeof p.lng === 'number') return { lat: p.lat, lng: p.lng };
+    return p;
+  });
+
+  // 3. 필드 보정 및 기본값 할당
+  return {
+    id,
+    userId: data.userId || '',
+    date: dateMs,
+    duration: data.duration || 0,
+    distance,
+    calories: data.calories ?? calculateCalories(distance),
+    condition: data.condition ?? '',
+    route: normalizedRoute,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : data.createdAt,
+  };
+};
+
+// ---------------------------------------------------------
+// [2단계: 레거시 UI 매퍼] - Backward Compatibility (Timestamp 기반)
+// ---------------------------------------------------------
+
+/**
+ * 정규화된 데이터를 기존 UI가 기대하는 Walk 형식으로 변환합니다.
+ * 기존 UI는 .toDate() 호출을 위해 Timestamp 객체를 필요로 합니다.
+ */
+const mapToOldWalk = (data: any, id: string): Walk => {
+  const clean = normalizeWalkData(data, id);
+  
+  return {
+    ...clean,
+    date: Timestamp.fromMillis(clean.date), // UI 호환용 Timestamp
+    routeCoordinates: clean.route || [],    // 기존 UI 필드명 호환
+    createdAt: clean.createdAt ? Timestamp.fromMillis(clean.createdAt) : undefined,
+  };
+};
+
+// ---------------------------------------------------------
+// [입력 로직] - 저장 직전에만 Timestamp 변환
 // ---------------------------------------------------------
 
 const _internalSaveWalk = async (userId: string, data: any): Promise<string> => {
   try {
-    // 1. 날짜 처리: number(ms)로 통일 후 Firebase용 Timestamp로 변환
-    const dateMs = typeof data.date === 'number' ? data.date : (data.date instanceof Timestamp ? data.date.toMillis() : Date.now());
-    const dateTimestamp = Timestamp.fromMillis(dateMs);
+    // 1. 먼저 정규화하여 깨끗한 데이터를 얻음
+    const clean = normalizeWalkData(data, '');
 
-    // 2. 경로 필드 통일 (routeCoordinates -> route)
-    const route = data.route || data.routeCoordinates || [];
-
-    // 3. 필드 누락 방지 (기본값 및 계산)
-    const distance = data.distance || 0;
-    const duration = data.duration || 0;
-    const calories = data.calories ?? calculateCalories(distance);
-    const condition = data.condition ?? '';
-
-    // 4. 최종 데이터 구성
-    const finalizedData = {
-      date: dateTimestamp,
-      distance,
-      duration,
-      route,
-      calories,
-      condition,
-      userId,
+    // 2. Firestore 저장용 데이터 구성 (날짜만 Timestamp로 변환)
+    const firestoreData = {
+      ...clean,
+      date: Timestamp.fromMillis(clean.date),
       createdAt: Timestamp.now(),
+      userId, // ID 강제 지정
     };
+    
+    // id 필드는 문서 자체 ID로 생성되므로 제거
+    delete (firestoreData as any).id;
 
-    const docRef = await addDoc(collection(db, `users/${userId}/walks`), finalizedData);
+    const docRef = await addDoc(collection(db, `users/${userId}/walks`), firestoreData);
     return docRef.id;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
@@ -55,51 +101,22 @@ const _internalSaveWalk = async (userId: string, data: any): Promise<string> => 
 };
 
 // ---------------------------------------------------------
-// [기존 UI 호환용 함수] UI를 건드리지 않기 위한 서비스 레이어의 Mapper
+// [공개 API]
 // ---------------------------------------------------------
 
-const mapToOldWalk = (data: any, id: string): Walk => {
-  // 1. 좌표 변환: routeCoordinates 필드 보장 (기존 UI 대응)
-  const coords = (data.route || data.routeCoordinates || []).map((p: any) => {
-    if (p instanceof GeoPoint) return { lat: p.latitude, lng: p.longitude };
-    if (typeof p.lat === 'number' && typeof p.lng === 'number') return { lat: p.lat, lng: p.lng };
-    return p;
-  });
-
-  // 2. 날짜 변환: UI의 .toDate() 호출을 위해 무조건 Timestamp 객체로 변환
-  let dateObj: Timestamp;
-  if (data.date instanceof Timestamp) {
-    dateObj = data.date;
-  } else if (typeof data.date === 'number') {
-    dateObj = Timestamp.fromMillis(data.date);
-  } else {
-    dateObj = Timestamp.now();
-  }
-
-  return {
-    ...data,
-    id,
-    date: dateObj,
-    routeCoordinates: coords,
-    route: coords,
-  };
-};
-
-// 1. 기존 UI가 사용하는 addWalk (WalkScreen 등)
 export const addWalk = async (userId: string, walkData: any): Promise<string> => {
   return _internalSaveWalk(userId, walkData);
 };
 
-// 2. 신규 기능용 함수 (HomePage 등)
 export const saveWalkRecord = async (record: WalkRecord): Promise<string> => {
   return _internalSaveWalk(record.userId, record);
 };
 
-// 3. 기존 UI가 사용하는 getWalks
 export const getWalks = async (userId: string): Promise<Walk[]> => {
   try {
     const q = query(collection(db, `users/${userId}/walks`), orderBy('date', 'desc'));
     const snapshot = await getDocs(q);
+    // 기존 UI 호환을 위해 mapToOldWalk 사용
     return snapshot.docs.map(d => mapToOldWalk(d.data(), d.id));
   } catch (error) {
     console.error("getWalks error:", error);
@@ -107,7 +124,6 @@ export const getWalks = async (userId: string): Promise<Walk[]> => {
   }
 };
 
-// 4. 기존 UI가 사용하는 getWalk (상세 페이지)
 export const getWalk = async (userId: string, walkId: string): Promise<Walk | null> => {
   try {
     const docRef = doc(db, `users/${userId}/walks`, walkId);
@@ -119,12 +135,9 @@ export const getWalk = async (userId: string, walkId: string): Promise<Walk | nu
   }
 };
 
-// 5. 주간 통계 조회
 export const getWeeklyStats = async (userId: string) => {
   try {
     const startOfWeek = getStartOfWeek(new Date());
-    // 하이브리드 날짜 데이터 대응을 위해 쿼리 조건 완화 또는 로직 처리 필요할 수 있음
-    // 여기서는 최신 저장 데이터가 Timestamp임을 가정하거나 number로도 필터링되게 구성
     const q = query(
       collection(db, `users/${userId}/walks`),
       where('date', '>=', Timestamp.fromMillis(startOfWeek.getTime())),
@@ -136,11 +149,9 @@ export const getWeeklyStats = async (userId: string) => {
     let totalCount = 0;
 
     querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const duration = data.duration || 0;
-      if (duration >= 10) {
-        const timestamp = data.date instanceof Timestamp ? data.date.toMillis() : data.date;
-        uniqueDates.add(formatDateKey(new Date(timestamp)));
+      const clean = normalizeWalkData(docSnap.data(), docSnap.id);
+      if (clean.duration >= 10) {
+        uniqueDates.add(formatDateKey(new Date(clean.date)));
         totalCount++;
       }
     });
