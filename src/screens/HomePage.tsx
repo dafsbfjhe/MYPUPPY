@@ -126,7 +126,7 @@ const HomePage: React.FC = () => {
     
     setIsWalking(false);
 
-    if (distance > 0) {
+    if (distance >= 0) {
       try {
         await saveWalkRecord({
           userId: user.uid,
@@ -140,8 +140,8 @@ const HomePage: React.FC = () => {
         // 2. 통계 즉시 갱신
         await loadStats();
 
-        // 3. 축하 오버레이 조건 (테스트용 10초)
-        if (duration >= 10) {
+        // 3. 축하 오버레이 조건 (거리 0 이상, 시간 10초 이상)
+        if (distance >= 0 && duration >= 10) {
           setShowCelebration(true);
         }
       } catch (e) {
