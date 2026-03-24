@@ -159,11 +159,6 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="home-page">
-      {/* 불꽃 스트릭 UI 레이어 */}
-      <div className="streak-overlay-layer">
-        <FireStreak streak={streak} />
-      </div>
-
       {currentPosition ? (
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -214,6 +209,7 @@ const HomePage: React.FC = () => {
         <CelebrationOverlay 
           count={weeklyCount} 
           calories={lastCalories} 
+          streak={streak}
           onClose={() => setShowCelebration(false)} 
         />
       )}

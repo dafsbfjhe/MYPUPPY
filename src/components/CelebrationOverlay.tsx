@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import FireStreak from './FireStreak';
 import './CelebrationOverlay.css';
 
 interface CelebrationOverlayProps {
   count: number;
   calories: number;
+  streak: boolean[];
   onClose: () => void;
 }
 
-const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ count, calories, onClose }) => {
+const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ count, calories, streak, onClose }) => {
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
@@ -29,6 +31,12 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ count, calories
         <p className="celebration-text">
           벌써 이번주에 <span className="text-highlight">{count}번</span>만큼 산책했어요!! 🔥
         </p>
+        
+        {/* 불꽃 스트릭 UI를 오버레이 내부로 이동 */}
+        <div className="celebration-streak-container">
+          <FireStreak streak={streak} />
+        </div>
+
         <div className="calorie-badge-large">
           오늘 소모 칼로리: <span className="calorie-value">{calories.toFixed(1)}</span> kcal
         </div>
