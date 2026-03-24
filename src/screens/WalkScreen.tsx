@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Timestamp } from 'firebase/firestore';
 import { addWalk } from '../services/walkService';
-import { watchPosition, clearWatch } from '../utils/geolocation';
-import { calculateDistance } from '../utils/distance';
 import { formatDuration } from '../utils/time';
 import { useAuth } from '../context/AuthContext';
 import { getMissions, updateMissionProgress } from '../services/missionService';
 import { addExperience, updateWalkStats } from '../services/userService';
+import { startGpsTracking, stopGpsTracking, startTimer, stopTimer } from '../utils/walkLogic';
 import './WalkScreen.css';
 
 type WalkStatus = 'idle' | 'walking' | 'paused' | 'ended';
@@ -21,7 +20,7 @@ const WalkScreen: React.FC = () => {
   const [missions, setMissions] = useState<any[]>([]);
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
   
-  const timerRef = useRef<number | null>(null);
+  const timerIdRef = useRef<number | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const lastUpdateDistanceRef = useRef(0);
 
@@ -59,27 +58,20 @@ const WalkScreen: React.FC = () => {
 
   useEffect(() => {
     if (status === 'walking') {
-      // Start timer
-      timerRef.current = setInterval(() => {
+      // Start timer using walkLogic
+      timerIdRef.current = startTimer(() => {
         setDuration(prev => prev + 1);
-      }, 1000);
+      });
 
-      // Start GPS tracking
-      watchIdRef.current = watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const newPoint = { lat: latitude, lng: longitude };
-          setRoute(prevRoute => {
-            let newDist = distance;
-            if (prevRoute.length > 0) {
-              const lastPoint = prevRoute[prevRoute.length - 1];
-              const d = calculateDistance(lastPoint, newPoint);
-              newDist += d;
-              setDistance(newDist);
-              // Update missions in background
-              updateMissions(newDist);
-            }
-            return [...prevRoute, newPoint];
+      // Start GPS tracking using walkLogic
+      watchIdRef.current = startGpsTracking(
+        (newPoint, distanceDelta) => {
+          setRoute(prevRoute => [...prevRoute, newPoint]);
+          setDistance(prevDist => {
+            const nextDist = prevDist + distanceDelta;
+            // Update missions in background
+            updateMissions(nextDist);
+            return nextDist;
           });
         },
         (error) => {
@@ -89,14 +81,20 @@ const WalkScreen: React.FC = () => {
         }
       );
     } else {
-      // Clean up timers and watchers
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (watchIdRef.current) clearWatch(watchIdRef.current);
+      // Clean up timers and watchers using walkLogic
+      if (timerIdRef.current !== null) {
+        stopTimer(timerIdRef.current);
+        timerIdRef.current = null;
+      }
+      if (watchIdRef.current !== null) {
+        stopGpsTracking(watchIdRef.current);
+        watchIdRef.current = null;
+      }
     }
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (watchIdRef.current) clearWatch(watchIdRef.current);
+      if (timerIdRef.current !== null) stopTimer(timerIdRef.current);
+      if (watchIdRef.current !== null) stopGpsTracking(watchIdRef.current);
     };
   }, [status, updateMissions]);
 

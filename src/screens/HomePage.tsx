@@ -1,12 +1,12 @@
 // Cloudflare build trigger: Integrated Walk stats, Streak, and Celebration Overlay.
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api';
-import { watchPosition, clearWatch, getCurrentPosition } from '../utils/geolocation';
-import { calculateDistance } from '../utils/distance';
+import { getCurrentPosition } from '../utils/geolocation';
 import { useAuth } from '../context/AuthContext';
 import { saveWalkRecord, getWeeklyStats } from '../services/walkService';
 import WalkControlCard from '../components/WalkControlCard';
 import CelebrationOverlay from '../components/CelebrationOverlay';
+import { startGpsTracking, stopGpsTracking, startTimer, stopTimer } from '../utils/walkLogic';
 import './HomePage.css';
 
 const containerStyle = {
@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
   const [lastCalories, setLastCalories] = useState(0);
 
   const watchIdRef = useRef<number | null>(null);
-  const timerRef = useRef<number | null>(null);
+  const timerIdRef = useRef<number | null>(null);
   const isWalkingRef = useRef(false);
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -57,26 +57,6 @@ const HomePage: React.FC = () => {
     isWalkingRef.current = isWalking;
   }, [isWalking]);
 
-  const handlePositionUpdate = useCallback((position: GeolocationPosition) => {
-    const { latitude, longitude } = position.coords;
-    const newPoint = { lat: latitude, lng: longitude };
-    
-    setCurrentPosition(newPoint);
-    setGeoError(null);
-
-    if (isWalkingRef.current) {
-      setRoute(prev => {
-        if (prev.length > 0) {
-          const lastPoint = prev[prev.length - 1];
-          const dist = calculateDistance(lastPoint, newPoint);
-          if (dist < 3) return prev;
-          setDistance(d => d + dist);
-        }
-        return [...prev, newPoint];
-      });
-    }
-  }, []);
-
   const handleGeoError = useCallback((error: GeolocationPositionError) => {
     console.error("Geolocation error: ", error);
     let message = "위치 정보를 가져올 수 없습니다.";
@@ -85,27 +65,56 @@ const HomePage: React.FC = () => {
     setGeoError(message);
   }, []);
 
+  // 초기 위치 로드 및 실시간 위치 추적 설정
   useEffect(() => {
-    getCurrentPosition(handlePositionUpdate, handleGeoError);
-    watchIdRef.current = watchPosition(handlePositionUpdate, handleGeoError);
-    return () => {
-      if (watchIdRef.current !== null) clearWatch(watchIdRef.current);
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [handlePositionUpdate, handleGeoError]);
+    getCurrentPosition((pos) => {
+      setCurrentPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+    }, handleGeoError);
 
+    // 전역 위치 추적 (산책 중이 아닐 때도 내 위치 업데이트용)
+    const watchId = startGpsTracking((newPoint) => {
+      setCurrentPosition(newPoint);
+      if (isWalkingRef.current) {
+        // 산책 중일 때의 데이터 업데이트는 별도 로직이 필요할 수 있으나 
+        // 1단계에서는 기존 구조를 유지하기 위해 여기서 처리하지 않음
+      }
+    }, handleGeoError);
+
+    return () => {
+      stopGpsTracking(watchId);
+    };
+  }, [handleGeoError]);
+
+  // 산책 상태에 따른 GPS 트래킹 및 타이머 제어
   useEffect(() => {
     if (isWalking) {
-      timerRef.current = window.setInterval(() => {
+      // 타이머 시작
+      timerIdRef.current = startTimer(() => {
         setDuration(d => d + 1);
-      }, 1000);
+      });
+
+      // 산책용 GPS 트래킹 시작
+      watchIdRef.current = startGpsTracking((newPoint, distanceDelta) => {
+        setCurrentPosition(newPoint);
+        setRoute(prev => [...prev, newPoint]);
+        setDistance(d => d + distanceDelta);
+      }, handleGeoError);
     } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerIdRef.current !== null) {
+        stopTimer(timerIdRef.current);
+        timerIdRef.current = null;
+      }
+      if (watchIdRef.current !== null) {
+        stopGpsTracking(watchIdRef.current);
+        watchIdRef.current = null;
+      }
     }
+
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerIdRef.current !== null) stopTimer(timerIdRef.current);
+      if (watchIdRef.current !== null) stopGpsTracking(watchIdRef.current);
     };
-  }, [isWalking]);
+  }, [isWalking, handleGeoError]);
 
   const handleStartWalk = () => {
     setIsWalking(true);
