@@ -6,13 +6,13 @@ export interface RoutePoint {
 }
 
 /**
- * 신규 기능 및 저장용 데이터 구조 (WalkRecord)
- * 하이브리드 데이터 대응을 위해 신규 필드는 Optional(?)로 정의
+ * [Raw Data] DB 저장 및 원본 조회용 (WalkRecord)
+ * DB에는 필드가 없을 수 있으므로 Optional(?)로 정의
  */
 export interface WalkRecord {
   id?: string;
   userId: string;
-  date: number; // 타임스탬프 (ms)
+  date: number; // ms
   duration: number;
   distance: number;
   calories?: number;
@@ -23,18 +23,18 @@ export interface WalkRecord {
 }
 
 /**
- * 기존 UI 호환 및 조회용 타입 (Walk)
- * UI 코드를 수정하지 않기 위해 route와 routeCoordinates를 모두 허용
+ * [Normalized Data] 서비스 정규화 이후 UI에서 사용하는 타입 (Walk)
+ * 정규화 로직을 거쳤으므로 모든 필수 데이터가 존재함을 보장(Required)
  */
 export interface Walk {
-  id?: string;
-  userId?: string;
-  date: Timestamp; // UI의 .toDate() 호출을 위해 Timestamp 고정
+  id: string; // 조회된 데이터는 ID가 반드시 있음
+  userId: string;
+  date: Timestamp; // UI 호환용 (toDate() 사용)
   duration: number;
   distance: number;
-  calories?: number;
-  condition?: string;
-  routeCoordinates?: RoutePoint[]; 
-  route?: RoutePoint[];
+  calories: number;  // 정규화 보장
+  condition: string; // 정규화 보장
+  route: RoutePoint[]; // 정규화 보장
+  routeCoordinates: RoutePoint[]; // 레거시 UI 호환 보장
   createdAt?: Timestamp;
 }

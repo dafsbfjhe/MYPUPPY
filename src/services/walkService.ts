@@ -112,23 +112,28 @@ export const saveWalkRecord = async (record: WalkRecord): Promise<string> => {
   return _internalSaveWalk(record.userId, record);
 };
 
+// 1. 기존 UI가 사용하는 getWalks (WalkScreen 등)
 export const getWalks = async (userId: string): Promise<Walk[]> => {
   try {
     const q = query(collection(db, `users/${userId}/walks`), orderBy('date', 'desc'));
     const snapshot = await getDocs(q);
-    // 기존 UI 호환을 위해 mapToOldWalk 사용
-    return snapshot.docs.map(d => mapToOldWalk(d.data(), d.id));
+    // mapToOldWalk를 거치면 이제 필수 필드가 모두 채워진 Walk 타입이 됨
+    return snapshot.docs.map(d => mapToOldWalk(d.data(), d.id)) as Walk[];
   } catch (error) {
     console.error("getWalks error:", error);
     return [];
   }
 };
 
+// 2. 기존 UI가 사용하는 getWalk (상세 페이지)
 export const getWalk = async (userId: string, walkId: string): Promise<Walk | null> => {
   try {
     const docRef = doc(db, `users/${userId}/walks`, walkId);
     const snap = await getDoc(docRef);
-    return snap.exists() ? mapToOldWalk(snap.data(), snap.id) : null;
+    if (!snap.exists()) return null;
+    
+    // 정규화 매퍼를 거쳐 확실한 Walk 타입을 반환
+    return mapToOldWalk(snap.data(), snap.id) as Walk;
   } catch (error) {
     console.error("getWalk error:", error);
     return null;
