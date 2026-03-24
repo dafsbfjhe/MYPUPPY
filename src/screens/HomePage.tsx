@@ -7,7 +7,6 @@ import { useAuth } from '../context/AuthContext';
 import { saveWalkRecord, getWeeklyStats } from '../services/walkService';
 import WalkControlCard from '../components/WalkControlCard';
 import CelebrationOverlay from '../components/CelebrationOverlay';
-import FireStreak from '../components/FireStreak';
 import './HomePage.css';
 
 const containerStyle = {
