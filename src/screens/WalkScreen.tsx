@@ -38,7 +38,7 @@ const WalkScreen: React.FC = () => {
   }, []);
 
   // 미션 업데이트 로직 (상태 구독 방식)
-  const updateMissions = useCallback(async (currentDistance: number) => {
+  const updateMissions = useCallback(async () => {
     if (!user || missions.length === 0) return;
 
     const distanceMissions = missions.filter(m => m.type === 'distance');
@@ -46,7 +46,6 @@ const WalkScreen: React.FC = () => {
       if (completedMissions.includes(mission.id)) continue;
 
       // 거리 차이만큼 업데이트 (여기서는 단순화를 위해 현재 거리 기반으로 체크하는 서비스 로직이라 가정)
-      // 실제 서비스 구조에 따라 이전 거리와의 차이를 계산해야 할 수도 있음
       const result = await updateMissionProgress(user.uid, mission.id, 0, 'distance', mission.target); 
       if (result.completed && !result.alreadyCompleted) {
         setCompletedMissions(prev => [...prev, mission.id]);
@@ -58,14 +57,15 @@ const WalkScreen: React.FC = () => {
   // 거리 변화 감지하여 미션 체크
   useEffect(() => {
     if (status === 'walking') {
-      updateMissions(distance);
+      updateMissions();
     }
   }, [distance, status, updateMissions]);
 
   const handleEnd = async () => {
     const note = prompt("오늘 산책은 어땠나요? 강아지 상태를 기록해주세요.");
 
-    if (route.length === 0 && distance === 0) {
+    const finalRoute = route ?? [];
+    if (finalRoute.length === 0 && distance === 0) {
         alert("산책 데이터가 없습니다.");
         navigate('/');
         return;
