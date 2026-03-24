@@ -7,7 +7,16 @@ interface Position {
 }
 
 /**
+ * 산책 데이터를 기반으로 소모 칼로리를 계산하는 함수
+ * (표준: 1km당 50kcal)
+ */
+export const calculateCalories = (distance: number): number => {
+  return (distance / 1000) * 50;
+};
+
+/**
  * GPS 트래킹을 시작하고 필터링 로직을 수행하는 함수
+... (기존 함수들) ...
  * @param onLocationUpdate 위치가 업데이트될 때 호출되는 콜백 (새 좌표, 추가된 거리)
  * @param onError 에러 발생 시 호출되는 콜백
  * @returns watchId (트래킹 중단 시 필요)
