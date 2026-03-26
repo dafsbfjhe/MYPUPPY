@@ -54,7 +54,7 @@ const WalkDetailScreen: React.FC = () => {
       <div className="detail-grid">
         <div className="detail-item">
           <span className="detail-label">Date</span>
-          <span className="detail-value">{walk.date.toDate().toLocaleDateString()}</span>
+          <span className="detail-value">{new Date(walk.date).toLocaleDateString()}</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">Duration</span>

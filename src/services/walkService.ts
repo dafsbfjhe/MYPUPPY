@@ -20,10 +20,10 @@ import { calculateCalories } from '../utils/walkLogic';
 // ---------------------------------------------------------
 
 /**
- * 어떤 형태의 산책 데이터가 들어오든 표준 WalkRecord 형식으로 정규화합니다.
- * 프론트엔드 전구간에서 사용하기 편하도록 날짜는 number(ms)로 통일합니다.
+ * 어떤 형태의 산책 데이터가 들어오든 표준 Walk 형식으로 정규화합니다.
+ * 모든 필드가 존재함을 보장하며, 날짜는 number(ms)로 통일합니다.
  */
-const normalizeWalkData = (data: any, id: string): WalkRecord => {
+const normalizeWalkData = (data: any, id: string): Walk => {
   const distance = data.distance || 0;
   
   // 1. 날짜 정규화 (Timestamp or number -> number)
@@ -33,13 +33,15 @@ const normalizeWalkData = (data: any, id: string): WalkRecord => {
 
   // 2. 경로 정규화 (GeoPoint or {lat, lng} -> RoutePoint[])
   const rawRoute = data.route || data.routeCoordinates || [];
-  const normalizedRoute: RoutePoint[] = rawRoute.map((p: any) => {
-    if (p instanceof GeoPoint) return { lat: p.latitude, lng: p.longitude };
-    if (typeof p.lat === 'number' && typeof p.lng === 'number') return { lat: p.lat, lng: p.lng };
-    return p;
-  });
+  const normalizedRoute: RoutePoint[] = Array.isArray(rawRoute) 
+    ? rawRoute.map((p: any) => {
+        if (p instanceof GeoPoint) return { lat: p.latitude, lng: p.longitude };
+        if (p && typeof p.lat === 'number' && typeof p.lng === 'number') return { lat: p.lat, lng: p.lng };
+        return p;
+      })
+    : [];
 
-  // 3. 필드 보정 및 기본값 할당
+  // 3. 필드 보정 및 모든 필드 필수(Required) 보장
   return {
     id,
     userId: data.userId || '',
@@ -49,26 +51,26 @@ const normalizeWalkData = (data: any, id: string): WalkRecord => {
     calories: data.calories ?? calculateCalories(distance),
     condition: data.condition ?? '',
     route: normalizedRoute,
-    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : data.createdAt,
+    routeCoordinates: normalizedRoute,
+    createdAt: data.createdAt instanceof Timestamp 
+      ? data.createdAt.toMillis() 
+      : (typeof data.createdAt === 'number' ? data.createdAt : dateMs),
   };
 };
 
 // ---------------------------------------------------------
-// [2단계: 레거시 UI 매퍼] - Backward Compatibility (Timestamp 기반)
+// [2단계: 서비스 매퍼] - Internal/UI 레이어용 변환
 // ---------------------------------------------------------
 
 /**
- * 정규화된 데이터를 기존 UI가 기대하는 Walk 형식으로 변환합니다.
- * 기존 UI는 .toDate() 호출을 위해 Timestamp 객체를 필요로 합니다.
+ * 정규화된 데이터를 그대로 반환하되, ID를 명시적으로 보장합니다.
  */
 const mapToOldWalk = (data: any, id: string): Walk => {
   const clean = normalizeWalkData(data, id);
   
   return {
     ...clean,
-    date: Timestamp.fromMillis(clean.date), // UI 호환용 Timestamp
-    routeCoordinates: clean.route || [],    // 기존 UI 필드명 호환
-    createdAt: clean.createdAt ? Timestamp.fromMillis(clean.createdAt) : undefined,
+    id, // 명시적으로 ID 지정
   };
 };
 

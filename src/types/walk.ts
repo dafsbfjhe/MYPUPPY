@@ -23,18 +23,34 @@ export interface WalkRecord {
 }
 
 /**
- * [Normalized Data] 서비스 정규화 이후 UI에서 사용하는 타입 (Walk)
- * 정규화 로직을 거쳤으므로 모든 필수 데이터가 존재함을 보장(Required)
+ * [Internal Normalized Data] 훅과 내부 로직에서 사용하는 표준 타입
+ * 모든 필드가 존재함을 보장(Required)하며, 날짜는 number(ms)로 관리
  */
-export interface Walk {
-  id: string; // 조회된 데이터는 ID가 반드시 있음
+export interface NormalizedWalk {
+  id: string;
   userId: string;
-  date: Timestamp; // UI 호환용 (toDate() 사용)
+  date: number;
   duration: number;
   distance: number;
-  calories: number;  // 정규화 보장
-  condition: string; // 정규화 보장
-  route: RoutePoint[]; // 정규화 보장
-  routeCoordinates: RoutePoint[]; // 레거시 UI 호환 보장
-  createdAt?: Timestamp;
+  calories: number;
+  condition: string;
+  route: RoutePoint[];
+  createdAt: number;
+}
+
+/**
+ * [Service Data] 서비스 이후 데이터 (모든 필드 Required)
+ * date와 createdAt은 number(ms)로 통일
+ */
+export interface Walk {
+  id: string;
+  userId: string;
+  date: number; // ms
+  duration: number;
+  distance: number;
+  calories: number;
+  condition: string;
+  route: RoutePoint[];
+  routeCoordinates: RoutePoint[];
+  createdAt: number;
 }

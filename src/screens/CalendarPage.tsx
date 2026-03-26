@@ -31,7 +31,7 @@ const CalendarPage: React.FC = () => {
 
   const getWalksForDate = (date: Date) => {
     return walks.filter(walk => {
-      const walkDate = walk.date.toDate();
+      const walkDate = new Date(walk.date);
       return (
         walkDate.getFullYear() === date.getFullYear() &&
         walkDate.getMonth() === date.getMonth() &&
