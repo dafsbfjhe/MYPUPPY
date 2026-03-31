@@ -51,53 +51,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.Kakao.init(KAKAO_JS_KEY);
     }
 
+    let unsubscribeData: (() => void) | null = null;
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      // 기존 리스너가 있다면 먼저 해제 (사용자 전환 또는 로그아웃 시)
+      if (unsubscribeData) {
+        unsubscribeData();
+        unsubscribeData = null;
+      }
+
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        // Initial user data setup/fetch
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
+        try {
+          // Initial user data setup/fetch
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
 
-        if (!userDoc.exists()) {
-          const initialData: UserData = {
-            level: 1,
-            exp: 0,
-            totalWalkCount: 0,
-            totalWalkDistance: 0,
-            createdAt: Timestamp.now(),
-            profile: {
-              nickname: firebaseUser.displayName || '신규 사용자',
-            },
-            dog: {
-              name: '강아지 이름',
-              age: '0살',
-              breed: '품종',
-              image: 'https://img.icons8.com/color/192/000000/dog.png',
+          if (!userDoc.exists()) {
+            const initialData: UserData = {
+              level: 1,
+              exp: 0,
+              totalWalkCount: 0,
+              totalWalkDistance: 0,
+              createdAt: Timestamp.now(),
+              profile: {
+                nickname: firebaseUser.displayName || '신규 사용자',
+              },
+              dog: {
+                name: '강아지 이름',
+                age: '0살',
+                breed: '품종',
+                image: 'https://img.icons8.com/color/192/000000/dog.png',
+              }
+            };
+            await setDoc(userDocRef, initialData);
+            setUserData(initialData);
+          }
+
+          // 새로운 실시간 리스너 등록
+          unsubscribeData = onSnapshot(userDocRef, (doc) => {
+            if (doc.exists()) {
+              setUserData(doc.data() as UserData);
             }
-          };
-          await setDoc(userDocRef, initialData);
-          setUserData(initialData);
+          });
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
 
-        // Real-time listener for user data
-        const unsubscribeData = onSnapshot(userDocRef, (doc) => {
-          if (doc.exists()) {
-            setUserData(doc.data() as UserData);
-          }
-        });
-
         setLoading(false);
-        return () => {
-          unsubscribeData();
-        };
       } else {
         setUserData(null);
         setLoading(false);
       }
     });
-
-    return unsubscribeAuth;
+                                          
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeData) {
+        unsubscribeData();
+      }
+    };
   }, []);
 
   const loginWithKakao = (): Promise<void> => {
